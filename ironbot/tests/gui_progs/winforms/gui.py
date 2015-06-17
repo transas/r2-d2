@@ -9,6 +9,10 @@ from System.Drawing import Point
 from System.Windows.Forms import Application, Button, Form, Label, CreateParams
 from System.Windows.Automation import AutomationElement
 
+class DialogForm(Form):
+    def __init__(self):
+        self.Text = 'Dialog'
+
 class HelloWorldForm(Form):
 
     def __init__(self):
@@ -20,7 +24,7 @@ class HelloWorldForm(Form):
         self.label.Height = 30
         self.label.Width = 200
 
-        self.count = 0
+        #self.count = 0
 
         button = Button()
         button.Text = "Click Me"
@@ -37,10 +41,13 @@ class HelloWorldForm(Form):
         #ae.
 
     def buttonPressed(self, sender, args):
-        print 'The label *used to say* : %s' % self.label.Text
-        self.count += 1
-        self.label.Text = "You have clicked me %s times." % self.count
+        f = DialogForm()
+        f.ShowDialog(self)
 
-sleep(3)
+        #print 'The label *used to say* : %s' % self.label.Text
+        #self.count += 1
+        #self.label.Text = "You have clicked me %s times." % self.count
+
+sleep(1)
 form = HelloWorldForm()
 Application.Run(form)
