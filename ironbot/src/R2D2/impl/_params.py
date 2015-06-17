@@ -132,15 +132,15 @@ def parse_named(pdict, attr_dict, a, default_action='wait', insert_attr_dict=Fal
     >>> v = parse_named(pd, ad, ['a', 'b', '1s'], 'get'); assert fabs(v['b2'].value - 1) < 0.0001
     >>> del v['b2']; assert v == {'a1': 0, 'b1': 0}
     >>> p = parse_named(pd, ad, ['attr1', '2'], 'get'); p
-    {'attributes': {'get': {'attr1': [2]}}}
-    >>> ad.action({"attr1": 1}, 'attr1', 'get', p['attributes']['get']['attr1'])
+    {'attributes': {'get': [('attr1', [2])]}}
+    >>> ad.action({"attr1": 1}, 'attr1', 'get', p['attributes']['get'][0][1])
     {'attr1': 1}
     3
     >>> ad = AttributeDict()
     >>> ad.add_attr("attr1", 0, get=(pop_type(int),), set=(pop,))
     >>> ad.add_class_attr("dict", "attr1", get=printer, set=printer)
     >>> p = parse_named(pd, ad, ['set attr1', '2'], 'get'); p
-    {'attributes': {'set': {'attr1': ['2']}}}
+    {'attributes': {'set': [('attr1', ['2'])]}}
     """
     res = {}
     while a:
@@ -159,8 +159,8 @@ def parse_named(pdict, attr_dict, a, default_action='wait', insert_attr_dict=Fal
                 if 'attributes' not in res:
                     res['attributes'] = {}
                 if action not in res['attributes']:
-                    res['attributes'][action] = {}
-                res['attributes'][action][attr] = (attr_dict.read_params(attr, action, a))
+                    res['attributes'][action] = []
+                res['attributes'][action].append((attr, attr_dict.read_params(attr, action, a)))
             except KeyError:
                 raise IronbotParametersException("Got an unknown attribute parameter: '%s'" % name)
     if insert_attr_dict:
@@ -185,7 +185,7 @@ def robot_args((pos, d), attr_dict=EMPTY_ATTRDICT, default_action='wait', insert
     >>> g('a', 'b', '1', 'a')
     (('a', 'b', 1), {'a1': 0})
     >>> g('a', 'b', '1', 'attr1', '10')
-    (('a', 'b', 1), {'attributes': {'get': {'attr1': [10]}}})
+    (('a', 'b', 1), {'attributes': {'get': [('attr1', [10])]}})
     >>> g = robot_args(rules, ad, 'get', True)(f)
     >>> res = g('a', 'b', 1)
     >>> assert id(res[1]['attr_dict']) == id(ad)
