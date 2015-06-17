@@ -48,7 +48,17 @@ except:
 def full_text(parent):
     labels = [i for i in parent.GetMultiple(SearchCriteria.ByControlType(Label))]
     buttons = [i for i in parent.GetMultiple(SearchCriteria.ByControlType(Button))]
-    return [i.Text for i in labels] + [i.Name for i in buttons]
+    return [parent.Name] + [i.Text for i in labels] + [i.Name for i in buttons]
+
+def wait_in_texts(x, match):
+    return match in full_text(x)
+
+def wait_re_in_texts(x, regexp):
+    for t in full_text(x):
+        if regexp.match(t):
+            return True
+    return False
+
 
 
 FIND_WND_PARAMS = {
@@ -256,8 +266,8 @@ def _negate(flag, f):
 @robot_args(PROC_FILTER_PARAMS, PROC_ATTRS, insert_attr_dict=True)
 def proc_filter(pli, none=False, number=None, single=False, _assert=False, negative=False, attributes={}, attr_dict=None):
     li = list(pli)
-    attr_filters = attributes.get('wait', {})
-    for attr, params in attr_filters.iteritems():
+    attr_filters = attributes.get('wait', [])
+    for attr, params in attr_filters:
         li = [item for item in li if attr_dict.action(item, attr, 'wait', params)]
 
     if negative:
@@ -388,6 +398,18 @@ WND_ATTRS.add_class_attr('Window', 'close', do=lambda w: w.Close())
 WND_ATTRS.add_attr('wait_while_busy', '', do=())
 WND_ATTRS.add_class_attr('Window', 'wait_while_busy', do=lambda w: w.WaitWhileBusy())
 
+WND_ATTRS.add_attr('texts', '', get=(),)
+WND_ATTRS.add_class_attr('Window', 'texts', get=full_text)
+
+WND_ATTRS.add_attr('in_texts', '', wait=(pop,),)
+WND_ATTRS.add_class_attr('Window', 'in_texts', wait=wait_in_texts)
+
+WND_ATTRS.add_attr('re_in_texts', '', wait=(pop_re,),)
+WND_ATTRS.add_class_attr('Window', 're_in_texts', wait=wait_re_in_texts)
+
+WND_ATTRS.add_attr('merged_texts', '', get=(),)
+WND_ATTRS.add_class_attr('Window', 'merged_texts', get=lambda x: '\n'.join(full_text(x)))
+
 
 WND_FILTER_PARAMS = (
     (pop,), {
@@ -403,15 +425,16 @@ WND_FILTER_PARAMS = (
 
 def _wnd_filter(wlist, single=False, negative=False, none=False, number=None, attributes={}, _assert=False, attr_dict=None):
     li = list(wlist)
-    attr_filters = attributes.get('wait', {})
+    attr_filters = attributes.get('wait', [])
 
-    for attr, params in attr_filters.iteritems():
+    for attr, params in attr_filters:
         li = [item for item in li if attr_dict.action(item, attr, 'wait', params)]
 
     if negative:
         li = filter(lambda v: v not in li, wlist)
 
     ok, res, msg = result_modifier(li, src_list=wlist, none=none, single=single, number=number)
+    #logging.warning("FILTERING: %s" % repr((ok, res, msg, wlist)))
     if ok:
         return res
     if _assert:
@@ -447,11 +470,11 @@ def wnd_get(app=None, parent=None, attr_dict=None, **kw):
         try:
             try:
                 if app:
-                    wnd_list = app.GetWindows()
+                    wnd_list = [w for w in app.GetWindows()]
                 elif parent:
-                    wnd_list = parent.ModalWindows()
+                    wnd_list = [w for w in parent.ModalWindows()]
                 else:
-                    wnd_list = Desktop.Instance.Windows()
+                    wnd_list = [w for w in Desktop.Instance.Windows()]
             except:
                 logging.error("Wnd Get: unable to obtain wnd_list: %s" % format_exc())
                 wnd_list = []
@@ -559,15 +582,19 @@ CTL_ATTRS.add_class_attr('ListBox', 'num_items', get=lambda x: len(x.Items), wai
 
 
 
-
+"""
 CTL_ATTRS.add_attr('texts', '', get=(),)
 CTL_ATTRS.add_class_attr('UIItem', 'texts', get=full_text)
 
+CTL_ATTRS.add_attr('in_texts', '', wait=(pop,),)
+CTL_ATTRS.add_class_attr('UIItem', 'in_texts', wait=wait_in_texts)
 
+CTL_ATTRS.add_attr('re_in_texts', '', wait=(pop_re,),)
+CTL_ATTRS.add_class_attr('Window', 're_in_texts', wait=wait_re_in_texts)
 
 CTL_ATTRS.add_attr('merged_texts', '', get=(),)
 CTL_ATTRS.add_class_attr('UIItem', 'merged_texts', get=lambda x: '\n'.join(full_text(x)))
-
+"""
 
 CTL_GET_PARAMS = (
     (pop,), {
@@ -590,7 +617,7 @@ def ctl_get(c_type, parent=None, src_li=None, timeout=Delay('0s'), number=None, 
         criteria = SearchCriteria.ByControlType(CONTROL_TYPES.get(c_type))
     else:
         criteria = SearchCriteria.All
-    attr_filters = attributes.get('wait', {})
+    attr_filters = attributes.get('wait', [])
     for _ in waiting_iterator(timeout):
         if parent:
             #logging.warning(repr(parent) + repr(dir(parent)))
@@ -599,7 +626,7 @@ def ctl_get(c_type, parent=None, src_li=None, timeout=Delay('0s'), number=None, 
         elif src_li:
             li = list(src_li)
 
-        for attr, params in attr_filters.iteritems():
+        for attr, params in attr_filters:
             li = [item for item in li if attr_dict.action(item, attr, 'wait', params)]
 
         if negative:
@@ -626,22 +653,18 @@ def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
     if not isinstance(ctls, list):
         ctls = [ctls]
         single = True
-    gets = attributes.get('get', {})
-    sets = attributes.get('set', {})
-    dos = attributes.get('do', {})
-    waits = attributes.get('wait', {})
-
-    get_keys = list(gets.keys())
-    get_keys.sort()
+    gets = attributes.get('get', [])
+    sets = attributes.get('set', [])
+    dos = attributes.get('do', [])
+    waits = attributes.get('wait', [])
 
     success = True
-
 
     for _ in waiting_iterator(timeout):
         #logging.warning("CHECKING %s" % repr(timeout.value))
         success = True
         for c in ctls:
-            for a, p in waits.iteritems():
+            for a, p in waits:
                 if not attr_dict.action(c, a, 'wait', p):
                     success = False
         if success:
@@ -654,13 +677,13 @@ def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
 
 
     res = [(lambda li: li[0] if len(gets) == 1 else li)
-           ([attr_dict.action(c, a, 'get', gets[a]) for a in get_keys]) for c in ctls]
+           ([attr_dict.action(c, a, 'get', p) for a, p in gets]) for c in ctls]
 
-    for a, p in dos.iteritems():
+    for a, p in dos:
         for c in ctls:
             attr_dict.action(c, a, 'do', p)
 
-    for a, p in sets.iteritems():
+    for a, p in sets:
         for c in ctls:
             attr_dict.action(c, a, 'set', p)
 

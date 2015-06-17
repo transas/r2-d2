@@ -65,10 +65,10 @@ Wnd keywords
     ${aid_wnd}=    Wnd Get    app    ${app2}    automation_id    IronPythonWPF    single
     ...    timeout    5s    assert
     Wnd Attr    ${aid_wnd}    do close
-    Wnd Get    app    ${app2}    none    timeout    5s    assert
+    Wnd Get    app    ${app2}    none    timeout    15s    assert
 
 Ctl keywords
-    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
     ...    assert    timeout    5s
     ${b1}=    Ctl Get    button    parent    ${win1}    automation_id    AID_Button1
@@ -125,4 +125,15 @@ Modal window
     ...    single
     Wnd Attr    ${dlg}    do wait_while_busy
     Wnd Attr    ${dlg}    do close
+    Wnd Attr    ${win}    do close
+
+in_texts testing
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    assert    test_teardown
+    ${win}=    Wnd Get    app    ${app1}    in_texts    Hello World App    in_texts
+    ...    Click Me    re_in_texts    ^Cli...Me$    single    timeout    5s
+    ...    assert
+    Run Keyword And Expect Error    IronbotException: Wnd Filter failed: The result does not match 'single' flag, found 0 item(s)    Wnd Get    app    ${app1}    in_texts    Hello World App
+    ...    in_texts    Click Me    re_in_texts    ^Cli....Me$    single    assert
+    Run Keyword And Expect Error    IronbotException: Wnd Filter failed: The result does not match 'single' flag, found 0 item(s)    Wnd Get    app    ${app1}    in_texts    Hello World App
+    ...    in_texts    Click Mee    re_in_texts    ^Cli...Me$    single    assert
     Wnd Attr    ${win}    do close
