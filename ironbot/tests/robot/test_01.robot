@@ -109,8 +109,20 @@ Textbox testcase
     Ctl Attr    ${text}    do focus
 
 Modal window
-    ${win}=    Wnd Get    re_title    ^Navi-Trainer.*$    single    timeout    5s
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    assert
+    ${win}=    Wnd Get    app    ${app1}    title    Hello World App    single
+    ...    timeout    5s    assert
+    Comment    ${win}=    Wnd Get    title    Hello World App    single    timeout
+    ...    5s    assert
+    Comment    ${dlg}=    Wnd Get    parent    ${win}    single    timeout
+    ...    5s    assert
+    Wnd Attr    ${win}    do wait_while_busy
+    ${b}=    Ctl Get    button    parent    ${win}    name    Click Me
+    Ctl Attr    ${b}    do click
+    Comment    ${dlg}=    Wnd Get    parent    ${win}    timeout    5s
     ...    assert
-    ${dlg}=    Wnd Get    parent    ${win}    single    timeout    5s
-    ...    assert
+    ${dlg}=    Wnd Get    parent    ${win}    timeout    5s    assert
+    ...    single
     Wnd Attr    ${dlg}    do wait_while_busy
+    Wnd Attr    ${dlg}    do close
+    Wnd Attr    ${win}    do close

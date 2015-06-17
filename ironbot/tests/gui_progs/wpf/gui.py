@@ -40,7 +40,7 @@ class MyWindow(Window):
 
     def Button2_Click(self, sender, e):
         form = AboutWindow()
-        form.Show()
+        form.ShowDialog()
 
     def MenuItem_Click(self, sender, e):
         form = AboutWindow()
