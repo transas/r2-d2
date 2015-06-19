@@ -558,8 +558,14 @@ CTL_ATTRS.add_class_attr('ListItem', 'text', get=lambda x: x.Text)
 CTL_ATTRS.add_attr('items', '', get=())
 CTL_ATTRS.add_class_attr('ListBox', 'items', get=lambda x: [i.Name for i in x.Items])
 
-CTL_ATTRS.add_attr('menuitem', '', get=(pop_menu_path,))
-CTL_ATTRS.add_class_attr('MenuBar', 'menuitem', get=lambda w, p: w.MenuItem(*p))
+def menu_item_clicker(m, p):
+    logging.warning("CLICKER")
+    item = m.MenuItem(*p)
+    item.Click()
+    return item
+
+CTL_ATTRS.add_attr('menuitem', '', get=(pop_menu_path,), click=(pop_menu_path,))
+CTL_ATTRS.add_class_attr('MenuBar', 'menuitem', get=lambda w, p: w.MenuItem(*p), click=menu_item_clicker)
 #CTL_ATTRS.add_attr('submenu', '', get=(pop,))
 #CTL_ATTRS.add_class_attr('MenuBar', 'submenu', get=lambda w, n: w.SubMenu(n))
 
@@ -657,6 +663,11 @@ CTL_ATTR_PARAMS = ((pop,), {'timeout': (('timeout', pop_type(Delay)),), 'assert'
 WND_ATTR_PARAMS = CTL_ATTR_PARAMS
 PROC_ATTR_PARAMS = CTL_ATTR_PARAMS
 
+def _dict_pop(d, name, default):
+    res = d.get(name, default)
+    if name in d:
+        del d[name]
+    return res
 
 def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
     single = False
@@ -664,10 +675,14 @@ def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
     if not isinstance(ctls, list):
         ctls = [ctls]
         single = True
-    gets = attributes.get('get', [])
-    sets = attributes.get('set', [])
-    dos = attributes.get('do', [])
-    waits = attributes.get('wait', [])
+    gets = _dict_pop(attributes, 'get', [])
+    sets = _dict_pop(attributes, 'set', [])
+    waits = _dict_pop(attributes, 'wait', [])
+    #dos = _dict_pop(attributes, 'do', [])
+    others = {}
+    for k in list(attributes.keys()):
+        others[k] = _dict_pop(attributes, k, [])
+
 
     success = True
 
@@ -690,9 +705,10 @@ def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
     res = [(lambda li: li[0] if len(gets) == 1 else li)
            ([attr_dict.action(c, a, 'get', p) for a, p in gets]) for c in ctls]
 
-    for a, p in dos:
-        for c in ctls:
-            attr_dict.action(c, a, 'do', p)
+    for k, v in others.iteritems():
+        for a, p in v:
+            for c in ctls:
+                attr_dict.action(c, a, k, p)
 
     for a, p in sets:
         for c in ctls:

@@ -141,7 +141,7 @@ in_texts testing
 
 menus
     Comment    ${app1}=    App Launch    ipy64.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
-    ${app1}=    App Launch    notepad.exe    test_teardown
+    ${app1}=    App Launch    notepad.exe
     ${win}=    Wnd Get    app    ${app1}    single    timeout    5s
     ...    assert
     Wnd Attr    ${win}    do wait_while_busy
@@ -159,5 +159,5 @@ menus
     Wnd Attr    ${win}    do wait_while_busy
     ${menu}=    Ctl Get    menu    parent    ${win}    name    Application
     ...    single    assert
-    ${exit}=    Ctl Attr    ${menu}    menuitem    File    Exit    <END>
-    Ctl Attr    ${exit}    do click
+    ${exit}=    Ctl Attr    ${menu}    click menuitem    File    Exit    <END>
+    Comment    Ctl Attr    ${exit}    do click
