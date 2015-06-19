@@ -91,42 +91,32 @@ class IronbotTimeoutException(IronbotException):
     pass
 
 
-TEST_CONTROLLED_APPS = [] #None
-SUITE_CONTROLLED_APPS = [] #None
+CONTROLLED_APPS = [] #None
 
 
-def ironbot_test_setup():
-    global TEST_CONTROLLED_APPS
-    TEST_CONTROLLED_APPS = []
+def on_enter_test():
+    CONTROLLED_APPS.append([])
 
 
-def ironbot_test_teardown():
-    global TEST_CONTROLLED_APPS
-    ca = TEST_CONTROLLED_APPS
-    TEST_CONTROLLED_APPS = []
-    if ca is None:
-        raise IronbotException("'Ironbot Test Teardown' keyword is used without 'Ironbot Test Setup'")
-    for a in ca:
+def on_enter_suite():
+    CONTROLLED_APPS.append([])
+
+
+def on_leave_test():
+    for a in CONTROLLED_APPS[-1]:
         if not a.HasExited:
             logging.warning('Test teardown: an app is still running')
             a.Dispose()
+    del CONTROLLED_APPS[-1]
 
 
-def ironbot_suite_setup():
-    global SUITE_CONTROLLED_APPS
-    SUITE_CONTROLLED_APPS = []
-
-
-def ironbot_suite_teardown():
-    global SUITE_CONTROLLED_APPS
-    ca = SUITE_CONTROLLED_APPS
-    SUITE_CONTROLLED_APPS = []
-    if ca is None:
-        raise IronbotException("'Ironbot Suite Teardown' keyword is used without 'Ironbot Suite Setup'")
-    for a in ca:
+def on_leave_suite():
+    for a in CONTROLLED_APPS[-1]:
         if not a.HasExited:
             logging.warning('Suite teardown: an app is still running')
             a.Dispose()
+    del CONTROLLED_APPS[-1]
+
 
 LAUNCH_PARAMS = (
     (pop,), {
@@ -168,9 +158,9 @@ def app_launch(executable, teardown=None, params='', _assert=False):
         logging.warning('Failed to launch an executable')
         return None
     if teardown == 'test':
-        TEST_CONTROLLED_APPS.append(app)
+        CONTROLLED_APPS[-1].append(app)
     elif teardown == 'suite':
-        SUITE_CONTROLLED_APPS.append(app)
+        SUITE_CONTROLLED_APPS[-2].append(app)
 
     return app
 
@@ -360,15 +350,14 @@ APP_ATTACH_PARAMS = (
 
 @robot_args(APP_ATTACH_PARAMS)
 def app_attach(processes, teardown=None):
-    global TEST_CONTROLLED_APPS, SUITE_CONTROLLED_APPS
     single = not isinstance(processes, list)
     if single:
         processes = [processes]
     apps = [Application.Attach(p) for p in processes]
     if teardown == 'test':
-        TEST_CONTROLLED_APPS += apps
+        CONTROLLED_APPS[-1] += apps
     elif teardown == 'suite':
-        SUITE_CONTROLLED_APPS += apps
+        CONTROLLED_APPS[-2] += apps
     if single:
         return apps[0]
     return apps

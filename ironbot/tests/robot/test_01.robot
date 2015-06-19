@@ -1,8 +1,5 @@
 *** Settings ***
-Suite Setup       Ironbot Suite Setup
-Suite Teardown    Ironbot Suite Teardown
-Test Setup        Ironbot Test Setup
-Test Teardown     Ironbot Test Teardown
+Suite Setup
 Library           ../../src/R2D2/ironbot.py
 
 *** Test Cases ***
@@ -139,7 +136,7 @@ in_texts testing
     ...    in_texts    Click Mee    re_in_texts    ^Cli...Me$    single    assert
     Wnd Attr    ${win}    do close
 
-menus
+Menus
     Comment    ${app1}=    App Launch    ipy64.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
     ${app1}=    App Launch    notepad.exe
     ${win}=    Wnd Get    app    ${app1}    single    timeout    5s
@@ -162,7 +159,7 @@ menus
     ${exit}=    Ctl Attr    ${menu}    click menuitem    File    Exit    <END>
     Comment    Ctl Attr    ${exit}    do click
 
-checkboxes
+Checkboxes
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
     ...    assert    timeout    5s
