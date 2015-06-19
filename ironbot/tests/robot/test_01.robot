@@ -161,3 +161,95 @@ menus
     ...    single    assert
     ${exit}=    Ctl Attr    ${menu}    click menuitem    File    Exit    <END>
     Comment    Ctl Attr    ${exit}    do click
+
+checkboxes
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
+    ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
+    ...    assert    timeout    5s
+    ${cbox1}=    Ctl Get    checkbox    parent    ${win1}    automation_id    checkBox1
+    ...    single    assert
+    ${false}=    Ctl Attr    ${cbox1}    checked
+    ${true}=    Ctl Attr    ${cbox1}    unchecked
+    Should Not Be True    ${false}
+    Should Be True    ${true}
+    Ctl Attr    ${cbox1}    do click
+    ${true}=    Ctl Attr    ${cbox1}    checked
+    ${false}=    Ctl Attr    ${cbox1}    unchecked
+    Should Not Be True    ${false}
+    Should Be True    ${true}
+    Ctl Attr    ${cbox1}    set checked    FaLsE
+    ${false}=    Ctl Attr    ${cbox1}    checked
+    ${true}=    Ctl Attr    ${cbox1}    unchecked
+    Should Not Be True    ${false}
+    Should Be True    ${true}
+    Ctl Attr    ${cbox1}    set unchecked    FaLsE
+    ${true}=    Ctl Attr    ${cbox1}    checked
+    ${false}=    Ctl Attr    ${cbox1}    unchecked
+    Should Not Be True    ${false}
+    Should Be True    ${true}
+    Ctl Attr    ${cbox1}    set unchecked    True
+    ${false}=    Ctl Attr    ${cbox1}    checked
+    ${true}=    Ctl Attr    ${cbox1}    unchecked
+    Should Not Be True    ${false}
+    Should Be True    ${true}
+    Ctl Attr    ${cbox1}    set checked    True
+    ${true}=    Ctl Attr    ${cbox1}    checked
+    ${false}=    Ctl Attr    ${cbox1}    unchecked
+    Should Not Be True    ${false}
+    Should Be True    ${true}
+
+Radiobuttons and tabs
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
+    ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
+    ...    assert    timeout    5s
+    ${tab}=    Ctl Get    tab    parent    ${win1}    single    assert
+    @{pages}=    Ctl Attr    ${tab}    tabpages
+    ${num_pages}=    Ctl Attr    ${tab}    num_tabpages
+    Should Be Equal As Integers    ${num_pages}    2
+    ${num_pages}=    Get Length    ${pages}
+    Should Be Equal As Integers    ${num_pages}    2
+    ${pn1}=    Ctl Attr    @{pages}[0]    name
+    Should Be Equal    ${pn1}    tabItem1
+    ${pn2}=    Ctl Attr    @{pages}[1]    name
+    Should Be Equal    ${pn2}    tabItem2
+    ${idx_sel}=    Ctl Attr    ${tab}    idx_selected
+    Should Be Equal As Integers    ${idx_sel}    0
+    Ctl Attr    ${tab}    set idx_selected    1
+    ${idx_sel}=    Ctl Attr    ${tab}    idx_selected
+    Should Be Equal As Integers    ${idx_sel}    1
+    ${pn2}=    Ctl Attr    ${tab}    name_selected
+    Should Be Equal    ${pn2}    tabItem2
+    Ctl Attr    ${tab}    set name_selected    tabItem1
+    ${idx_sel}=    Ctl Attr    ${tab}    idx_selected
+    Should Be Equal As Integers    ${idx_sel}    0
+    Ctl Attr    ${tab}    set name_selected    tabItem2
+    ${rb1}=    Ctl Get    radio    parent    ${win1}    name    RadioButton1
+    ...    single    assert
+    ${rb2}=    Ctl Get    radio    parent    ${win1}    name    RadioButton2
+    ...    single    assert
+    ${c1}=    Ctl Attr    ${rb1}    checked
+    ${c2}=    Ctl Attr    ${rb2}    checked
+    Should Not Be True    ${c1}
+    Should Not Be True    ${c2}
+    ${uc1}=    Ctl Attr    ${rb1}    unchecked
+    ${uc2}=    Ctl Attr    ${rb2}    unchecked
+    Should Be True    ${uc1}
+    Should Be True    ${uc2}
+    Ctl Attr    ${rb1}    do click
+    ${c1}=    Ctl Attr    ${rb1}    checked
+    ${c2}=    Ctl Attr    ${rb2}    checked
+    Should Be True    ${c1}
+    Should Not Be True    ${c2}
+    ${uc1}=    Ctl Attr    ${rb1}    unchecked
+    ${uc2}=    Ctl Attr    ${rb2}    unchecked
+    Should Not Be True    ${uc1}
+    Should Be True    ${uc2}
+    Ctl Attr    ${rb2}    do click
+    ${c1}=    Ctl Attr    ${rb1}    checked
+    ${c2}=    Ctl Attr    ${rb2}    checked
+    Should Not Be True    ${c1}
+    Should Be True    ${c2}
+    ${uc1}=    Ctl Attr    ${rb1}    unchecked
+    ${uc2}=    Ctl Attr    ${rb2}    unchecked
+    Should Be True    ${uc1}
+    Should Not Be True    ${uc2}

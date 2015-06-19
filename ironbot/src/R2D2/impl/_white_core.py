@@ -23,9 +23,10 @@ try:
 
     from White.Core.UIItems.Finders import SearchCriteria
 
-    from White.Core.UIItems import Button, TextBox, RadioButton, Label
+    from White.Core.UIItems import Button, TextBox, RadioButton, Label, CheckBox
 
     from White.Core.UIItems.ListBoxItems import ListBox, ListItem
+    from White.Core.UIItems.TabItems import Tab, TabPage
     #import White.Core.UIItems
     #logging.warning(repr(dir(White.Core.UIItems)))
     #from White.Core.UIItems.TreeItems import Tree, TreeNode
@@ -516,7 +517,11 @@ CONTROL_TYPES = {
     'menu': MenuBar,
     'list': ListBox,
     'listitem': ListItem,
-    #'edit': ControlType.Edit,
+    'radio': RadioButton,
+    'radiobutton': RadioButton,
+    'checkbox': CheckBox,
+    #'tabpage': TabPage,
+    'tab': Tab,
 }
 
 
@@ -525,12 +530,12 @@ CTL_ATTRS.add_attr('id', '', wait=(pop,), get=())
 CTL_ATTRS.add_class_attr('UIItem', 'id', wait=attr_checker('Id'), get=lambda x: x.Id)
 CTL_ATTRS.add_attr('re_id', '', wait=(pop_re,))
 CTL_ATTRS.add_class_attr('UIItem', 're_id', wait=re_checker('Id'))
-CTL_ATTRS.add_attr('name', '', wait=(pop,), get=lambda x: x.Name)
-CTL_ATTRS.add_class_attr('UIItem', 'name', wait=attr_checker('Name'))
+CTL_ATTRS.add_attr('name', '', wait=(pop,), get=())
+CTL_ATTRS.add_class_attr('UIItem', 'name', wait=attr_checker('Name'), get=lambda x: x.Name)
 CTL_ATTRS.add_attr('re_name', '', wait=(pop_re,))
 CTL_ATTRS.add_class_attr('UIItem', 're_name', wait=re_checker('Name'))
-CTL_ATTRS.add_attr('automation_id', '', wait=(pop,), get=lambda x: x.AutomationElement.GetCurrentPropertyValue(AutomationElement.AutomationIdProperty))
-CTL_ATTRS.add_class_attr('UIItem', 'automation_id', wait=check_aid)
+CTL_ATTRS.add_attr('automation_id', '', wait=(pop,), get=())
+CTL_ATTRS.add_class_attr('UIItem', 'automation_id', wait=check_aid, get=lambda x: x.AutomationElement.GetCurrentPropertyValue(AutomationElement.AutomationIdProperty))
 CTL_ATTRS.add_attr('re_automation_id', '', wait=(pop_re,))
 CTL_ATTRS.add_class_attr('UIItem', 're_automation_id', wait=re_check_aid)
 CTL_ATTRS.add_attr('enabled', '', get=(), wait=())
@@ -558,6 +563,15 @@ CTL_ATTRS.add_class_attr('ListItem', 'text', get=lambda x: x.Text)
 CTL_ATTRS.add_attr('items', '', get=())
 CTL_ATTRS.add_class_attr('ListBox', 'items', get=lambda x: [i.Name for i in x.Items])
 
+CTL_ATTRS.add_attr('checked', '', get=(), set=(pop_bool,))
+CTL_ATTRS.add_class_attr('CheckBox', 'checked', get=lambda x: x.Checked, set=lambda x, p: x.Click() if bool(p) != bool(x.Checked) else None)
+CTL_ATTRS.add_class_attr('RadioButton', 'checked', get=lambda x: x.IsSelected)
+CTL_ATTRS.add_attr('unchecked', '', get=(), set=(pop_bool,))
+CTL_ATTRS.add_class_attr('CheckBox', 'unchecked', get=lambda x: not x.Checked, set=lambda x, p: x.Click() if bool(p) == bool(x.Checked) else None)
+CTL_ATTRS.add_class_attr('RadioButton', 'unchecked', get=lambda x: not x.IsSelected)
+
+
+
 def menu_item_clicker(m, p):
     logging.warning("CLICKER")
     item = m.MenuItem(*p)
@@ -582,11 +596,20 @@ def listbox_get_selected_idx(x):
             return i
     return -1
 
+
 def listbox_select_idx(x, idx):
     x.Select(idx)
 
+
 def listbox_get_selected(x):
     return x.SelectedItemText
+
+
+def tab_get_selected_idx(x):
+    for i, item in enumerate(x.Pages):
+        if item == x.SelectedTab:
+            return i
+    return -1
 
 
 CTL_ATTRS.add_attr('selected', '', get=(), set=(pop,))
@@ -597,7 +620,13 @@ CTL_ATTRS.add_attr('num_items', '', get=(), wait=(pop_type(int),))
 CTL_ATTRS.add_class_attr('ListBox', 'num_items', get=lambda x: len(x.Items), wait=lambda x, n: n == len(x.Items))
 
 
-
+CTL_ATTRS.add_attr('tabpages', '', get=())
+CTL_ATTRS.add_class_attr('Tab', 'tabpages', get=lambda x: [p for p in x.Pages])
+CTL_ATTRS.add_attr('num_tabpages', '', get=())
+CTL_ATTRS.add_class_attr('Tab', 'num_tabpages', get=lambda x: x.TabCount)
+CTL_ATTRS.add_class_attr('Tab', 'idx_selected', get=tab_get_selected_idx, set=lambda x, i: x.SelectTabPage(i))
+CTL_ATTRS.add_attr('name_selected', '', get=(), set=(pop,))
+CTL_ATTRS.add_class_attr('Tab', 'name_selected', get=lambda x: x.SelectedTab.Name, set=lambda x, n: x.SelectTabPage(n))
 
 """
 CTL_ATTRS.add_attr('texts', '', get=(),)
@@ -701,9 +730,17 @@ def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
             raise IronbotTimeoutException('Error: Attribute timeout')
         logging.warning('Error: Attribute timeout')
 
+    res = []
+    for c in ctls:
+        ctl_gets = []
+        for a, p in gets:
+            ctl_gets.append(attr_dict.action(c, a, 'get', p))
+        if len(ctl_gets) == 1:
+            ctl_gets = ctl_gets[0]
+        res.append(ctl_gets)
 
-    res = [(lambda li: li[0] if len(gets) == 1 else li)
-           ([attr_dict.action(c, a, 'get', p) for a, p in gets]) for c in ctls]
+    #res = [(lambda li: li[0] if len(gets) == 1 else li)
+    #       ([attr_dict.action(c, a, 'get', p) for a, p in gets]) for c in ctls]
 
     for k, v in others.iteritems():
         for a, p in v:
