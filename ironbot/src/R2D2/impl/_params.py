@@ -59,6 +59,16 @@ def pop_bool(params):
         raise IronbotParametersException("Expected a value of type bool, got '%s'" % s)
 
 
+def pop_menu_path(params):
+    res = []
+    while params:
+        v = pop(params)
+        if v == '<END>':
+            break
+        res.append(v)
+    return res
+
+
 def pop_type(type):
     """
     >>> p = [1, ' 2.0 ', '', 's']

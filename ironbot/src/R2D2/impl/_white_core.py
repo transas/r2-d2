@@ -1,7 +1,7 @@
 import logging
 import re
 
-from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool
+from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool, pop_menu_path
 from _util import IronbotException, waiting_iterator, result_modifier
 from _attr import AttributeDict
 from _attr import attr_checker, re_checker, my_getattr, attr_reader
@@ -32,6 +32,7 @@ try:
     #from White.Core.UIItems.WindowItems import Window, DisplayState
     #from White.Core.UIItems.WindowStripControls import ToolStrip, MenuBar
     from White.Core.UIItems.MenuItems import Menu
+    from White.Core.UIItems.WindowStripControls import MenuBar
     #from White.Core.UIItems.ListBoxItems import ComboBox
     #from White.Core.UIItems.TableItems import Table
 
@@ -398,6 +399,9 @@ WND_ATTRS.add_class_attr('Window', 'close', do=lambda w: w.Close())
 WND_ATTRS.add_attr('wait_while_busy', '', do=())
 WND_ATTRS.add_class_attr('Window', 'wait_while_busy', do=lambda w: w.WaitWhileBusy())
 
+WND_ATTRS.add_attr('menu', '', get=())
+WND_ATTRS.add_class_attr('Window', 'menu', get=lambda w: w.MenuBar)
+
 WND_ATTRS.add_attr('texts', '', get=(),)
 WND_ATTRS.add_class_attr('Window', 'texts', get=full_text)
 
@@ -409,6 +413,7 @@ WND_ATTRS.add_class_attr('Window', 're_in_texts', wait=wait_re_in_texts)
 
 WND_ATTRS.add_attr('merged_texts', '', get=(),)
 WND_ATTRS.add_class_attr('Window', 'merged_texts', get=lambda x: '\n'.join(full_text(x)))
+
 
 
 WND_FILTER_PARAMS = (
@@ -508,7 +513,7 @@ CONTROL_TYPES = {
     'all': None,
     'button': Button,
     'edit': TextBox,
-    'menu': Menu,
+    'menu': MenuBar,
     'list': ListBox,
     'listitem': ListItem,
     #'edit': ControlType.Edit,
@@ -552,6 +557,12 @@ CTL_ATTRS.add_class_attr('ListItem', 'text', get=lambda x: x.Text)
 
 CTL_ATTRS.add_attr('items', '', get=())
 CTL_ATTRS.add_class_attr('ListBox', 'items', get=lambda x: [i.Name for i in x.Items])
+
+CTL_ATTRS.add_attr('menuitem', '', get=(pop_menu_path,))
+CTL_ATTRS.add_class_attr('MenuBar', 'menuitem', get=lambda w, p: w.MenuItem(*p))
+#CTL_ATTRS.add_attr('submenu', '', get=(pop,))
+#CTL_ATTRS.add_class_attr('MenuBar', 'submenu', get=lambda w, n: w.SubMenu(n))
+
 
 #def checked(x, i):
 #    return x.IsChecked(i.Text)

@@ -79,8 +79,8 @@ Ctl keywords
     Ctl Attr    ${b1}    click
     @{bs}=    Ctl Get    button    parent    ${win1}    re_automation_id    A.._Bu...n.
     ...    number    2    assert    timeout    5s
-    ${menu}=    Ctl Get    menu    parent    ${win1}
-    ${t}=    Ctl Attr    ${menu}    click
+    Comment    ${menu}=    Ctl Get    menu    parent    ${win1}
+    Comment    ${t}=    Ctl Attr    ${menu}    click
     ${e}=    Ctl Get    edit    parent    ${win1}    automation_id    AID_TextBox1
     ...    single    assert
     ${v}=    Ctl Attr    ${e}    text
@@ -128,6 +128,7 @@ Modal window
     Wnd Attr    ${win}    do close
 
 in_texts testing
+    [Tags]    test_tag
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    assert    test_teardown
     ${win}=    Wnd Get    app    ${app1}    in_texts    Hello World App    in_texts
     ...    Click Me    re_in_texts    ^Cli...Me$    single    timeout    5s
@@ -137,3 +138,26 @@ in_texts testing
     Run Keyword And Expect Error    IronbotException: Wnd Filter failed: The result does not match 'single' flag, found 0 item(s)    Wnd Get    app    ${app1}    in_texts    Hello World App
     ...    in_texts    Click Mee    re_in_texts    ^Cli...Me$    single    assert
     Wnd Attr    ${win}    do close
+
+menus
+    Comment    ${app1}=    App Launch    ipy64.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
+    ${app1}=    App Launch    notepad.exe    test_teardown
+    ${win}=    Wnd Get    app    ${app1}    single    timeout    5s
+    ...    assert
+    Wnd Attr    ${win}    do wait_while_busy
+    ${menu}=    Wnd Attr    ${win}    get menu
+    ${menu}=    Ctl Get    menu    parent    ${win}    name    Application
+    ...    single    assert
+    ${about}=    Ctl Attr    ${menu}    get menuitem    Help    About Notepad
+    Ctl Attr    ${about}    do click
+    ${dlg}=    Wnd Get    parent    ${win}    timeout    5s    assert
+    ...    single
+    ${btn}=    Ctl Get    button    parent    ${win}    name    OK
+    ...    timeout    5s    assert    single
+    Ctl Attr    ${btn}    do click
+    Wnd Get    parent    ${win}    timeout    5s    assert    none
+    Wnd Attr    ${win}    do wait_while_busy
+    ${menu}=    Ctl Get    menu    parent    ${win}    name    Application
+    ...    single    assert
+    ${exit}=    Ctl Attr    ${menu}    menuitem    File    Exit    <END>
+    Ctl Attr    ${exit}    do click
