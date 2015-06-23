@@ -549,15 +549,17 @@ CTL_ATTRS.add_attr('text', '', get=(), set=(pop,))
 CTL_ATTRS.add_class_attr('TextBox', 'text', get=lambda x: x.Text, set=lambda x, v: setattr(x, 'Text', v))
 CTL_ATTRS.add_class_attr('ListItem', 'text', get=lambda x: x.Text)
 
-CTL_ATTRS.add_attr('items', '', get=())
-CTL_ATTRS.add_class_attr('ListBox', 'items', get=lambda x: [i.Name for i in x.Items])
+#CTL_ATTRS.add_attr('items', '', get=())
+#CTL_ATTRS.add_class_attr('ListBox', 'items', get=lambda x: [i.Name for i in x.Items])
 
 CTL_ATTRS.add_attr('checked', '', get=(), set=(pop_bool,))
 CTL_ATTRS.add_class_attr('CheckBox', 'checked', get=lambda x: x.Checked, set=lambda x, p: x.Click() if bool(p) != bool(x.Checked) else None)
 CTL_ATTRS.add_class_attr('RadioButton', 'checked', get=lambda x: x.IsSelected)
+CTL_ATTRS.add_class_attr('ListItem', 'checked', get=lambda x: x.Checked, set=lambda x, v: x.Check() if v else x.UnCheck())
 CTL_ATTRS.add_attr('unchecked', '', get=(), set=(pop_bool,))
 CTL_ATTRS.add_class_attr('CheckBox', 'unchecked', get=lambda x: not x.Checked, set=lambda x, p: x.Click() if bool(p) == bool(x.Checked) else None)
 CTL_ATTRS.add_class_attr('RadioButton', 'unchecked', get=lambda x: not x.IsSelected)
+CTL_ATTRS.add_class_attr('ListItem', 'unchecked', get=lambda x: not x.Checked, set=lambda x, v: x.UnCheck() if v else x.Check())
 
 
 
@@ -587,11 +589,14 @@ def listbox_get_selected_idx(x):
 
 
 def listbox_select_idx(x, idx):
-    x.Select(idx)
+    if isinstance(idx, (unicode, str, int, long)):
+        x.Select(idx)
+    else:
+        idx.Select()
 
 
 def listbox_get_selected(x):
-    return x.SelectedItemText
+    return x.SelectedItem
 
 
 def tab_get_selected_idx(x):
@@ -607,6 +612,9 @@ CTL_ATTRS.add_attr('idx_selected', '', get=(), set=(pop_type(int),))
 CTL_ATTRS.add_class_attr('ListBox', 'idx_selected', get=listbox_get_selected_idx, set=lambda x, i: x.Select(i))
 CTL_ATTRS.add_attr('num_items', '', get=(), wait=(pop_type(int),))
 CTL_ATTRS.add_class_attr('ListBox', 'num_items', get=lambda x: len(x.Items), wait=lambda x, n: n == len(x.Items))
+CTL_ATTRS.add_attr('listitems', '', get=())
+CTL_ATTRS.add_class_attr('ListBox', 'listitems', get=lambda x: [i for i in x.Items])
+
 
 
 CTL_ATTRS.add_attr('tabpages', '', get=())

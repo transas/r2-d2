@@ -87,7 +87,7 @@ Ctl keywords
     ...    single
     Ctl Attr    ${list}    wait num_items    6    wait enabled    timeout    5s
     ...    assert
-    @{listitems}=    Ctl Attr    ${list}    items
+    @{listitems}=    Ctl Attr    ${list}    listitems
     ${idx_selected}=    Ctl Attr    ${list}    idx_selected
     ${selected}=    Ctl Attr    ${list}    selected
     Ctl Attr    ${list}    set idx_selected    2
@@ -95,7 +95,26 @@ Ctl keywords
     Should Be Equal    '${idx_selected}'    '2'
     Ctl Attr    ${list}    set selected    DEF
     ${selected}=    Ctl Attr    ${list}    selected
-    Should Be Equal    '${selected}'    'DEF'
+    ${seltext}=    Ctl Attr    ${selected}    text
+    Should Be Equal    '${seltext}'    'DEF'
+    Ctl Attr    ${list}    set idx_selected    1
+    ${selected}=    Ctl Attr    ${list}    selected
+    ${false}=    Ctl Attr    ${selected}    checked
+    Should Not Be True    ${false}
+    Ctl Attr    ${selected}    set checked    True
+    ${true}=    Ctl Attr    ${selected}    checked
+    Should Be True    ${true}
+    ${false}=    Ctl Attr    ${selected}    unchecked
+    Should Not Be True    ${false}
+    Ctl Attr    ${selected}    set unchecked    True
+    ${true}=    Ctl Attr    ${selected}    unchecked
+    Should Be True    ${true}
+    Ctl Attr    ${selected}    set unchecked    False
+    ${false}=    Ctl Attr    ${selected}    unchecked
+    Should Not Be True    ${false}
+    Ctl Attr    ${selected}    set checked    False
+    ${false}=    Ctl Attr    ${selected}    checked
+    Should Not Be True    ${false}
 
 Textbox testcase
     ${app1}=    App Launch    ipy64.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown

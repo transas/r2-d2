@@ -15,9 +15,9 @@
                     <TextBlock Text="MainWindow1" AutomationProperties.AutomationId="AID_TextBlock1" />
                     <TextBlock Text="MainWindow2" AutomationProperties.AutomationId="AID_TextBlock2" />
                     <ListBox Height="100" Name="listBox1" AutomationProperties.AutomationId="AID_ListBox1">
-                        <ListBoxItem AutomationProperties.AutomationId="AID_ListBox1_1">ListBox Item #1</ListBoxItem>
-                        <ListBoxItem>ListBox Item #2</ListBoxItem>
-                        <ListBoxItem>ListBox Item #3</ListBoxItem>
+                        <ListBoxItem AutomationProperties.AutomationId="AID_ListBox1_1"><CheckBox>ListBox Item #1</CheckBox></ListBoxItem>
+                        <ListBoxItem><CheckBox>ListBox Item #2</CheckBox></ListBoxItem>
+                        <ListBoxItem><CheckBox>ListBox Item #3</CheckBox></ListBoxItem>
                     </ListBox>
                     <TextBox Name="textBox1" AutomationProperties.AutomationId="AID_TextBox1">Text box</TextBox>
                 </StackPanel>
