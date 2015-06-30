@@ -64,7 +64,7 @@ Wnd keywords
     Wnd Attr    ${aid_wnd}    do close
     Wnd Get    app    ${app2}    none    timeout    15s    assert
 
-Ctl keywords
+Ctl keywords, text and list
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
     ...    assert    timeout    5s
@@ -269,3 +269,29 @@ Radiobuttons and tabs
     ${uc2}=    Ctl Attr    ${rb2}    unchecked
     Should Be True    ${uc1}
     Should Not Be True    ${uc2}
+
+Tree
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
+    ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
+    ...    assert    timeout    5s
+    ${tree}=    Ctl Get    tree    parent    ${win1}    single    assert
+    ...    timeout    5s
+    @{top_nodes}=    Ctl Attr    ${tree}    nodes
+    ${node_1}=    Set Variable    @{top_nodes}[0]
+    @{subnodes}=    Ctl Attr    ${node_1}    nodes
+    ${f}=    Ctl Attr    ${node_1}    selected
+    Should Not Be True    ${f}
+    Ctl Attr    ${node_1}    set selected    True
+    ${t}=    Ctl Attr    ${node_1}    selected
+    Should Be True    ${t}
+    ${sn}=    Ctl Attr    ${tree}    selected_node
+    ${nname}=    Ctl Attr    ${sn}    text
+    Ctl Attr    ${node_1}    set selected    false
+    ${sn}=    Ctl Attr    ${tree}    selected_node
+    Should Not Be True    ${sn}
+    Should Be Equal As Strings    Level 1    ${nname}
+    Ctl Attr    @{subnodes}[1]    do collapse
+    ${n}=    Ctl Attr    ${tree}    node_by_path    Level 1    Level 2.2    Level 3.1
+    ${nt}=    Ctl Attr    ${n}    text
+    Should Be Equal As Strings    Level 3.1    ${nt}
+    Ctl Attr    @{subnodes}[1]    do expand

@@ -42,6 +42,13 @@ def pop_re(params):
 BOOL_VALS = {"TRUE": True, "FALSE": False}
 
 
+def str_2_bool(s):
+    try:
+        return BOOL_VALS[s.upper()]
+    except:
+        raise IronbotException("Cannot cast to bool: '%s'" % s)
+
+
 def pop_bool(params):
     """
     >>> pop_bool(['fAlSe'])

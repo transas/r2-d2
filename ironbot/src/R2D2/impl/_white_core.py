@@ -1,7 +1,7 @@
 import logging
 import re
 
-from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool, pop_menu_path
+from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool, pop_menu_path, str_2_bool
 from _util import IronbotException, waiting_iterator, result_modifier
 from _attr import AttributeDict
 from _attr import attr_checker, re_checker, my_getattr, attr_reader
@@ -29,7 +29,7 @@ try:
     from White.Core.UIItems.TabItems import Tab, TabPage
     #import White.Core.UIItems
     #logging.warning(repr(dir(White.Core.UIItems)))
-    #from White.Core.UIItems.TreeItems import Tree, TreeNode
+    from White.Core.UIItems.TreeItems import Tree, TreeNode
     #from White.Core.UIItems.WindowItems import Window, DisplayState
     #from White.Core.UIItems.WindowStripControls import ToolStrip, MenuBar
     from White.Core.UIItems.MenuItems import Menu
@@ -511,6 +511,8 @@ CONTROL_TYPES = {
     'checkbox': CheckBox,
     #'tabpage': TabPage,
     'tab': Tab,
+    'tree': Tree,
+    'treenode': TreeNode,
 }
 
 
@@ -548,6 +550,7 @@ CTL_ATTRS.add_class_attr('UIItem', 'focus', do=lambda x: x.Focus(), get=lambda x
 CTL_ATTRS.add_attr('text', '', get=(), set=(pop,))
 CTL_ATTRS.add_class_attr('TextBox', 'text', get=lambda x: x.Text, set=lambda x, v: setattr(x, 'Text', v))
 CTL_ATTRS.add_class_attr('ListItem', 'text', get=lambda x: x.Text)
+CTL_ATTRS.add_class_attr('TreeNode', 'text', get=lambda x: x.Text)
 
 #CTL_ATTRS.add_attr('items', '', get=())
 #CTL_ATTRS.add_class_attr('ListBox', 'items', get=lambda x: [i.Name for i in x.Items])
@@ -562,9 +565,26 @@ CTL_ATTRS.add_class_attr('RadioButton', 'unchecked', get=lambda x: not x.IsSelec
 CTL_ATTRS.add_class_attr('ListItem', 'unchecked', get=lambda x: not x.Checked, set=lambda x, v: x.UnCheck() if v else x.Check())
 
 
+CTL_ATTRS.add_attr('nodes', '', get=())
+CTL_ATTRS.add_class_attr('Tree', 'nodes', get=lambda x: [n for n in x.Nodes])
+CTL_ATTRS.add_class_attr('TreeNode', 'nodes', get=lambda x: [n for n in x.Nodes])
+CTL_ATTRS.add_attr('node_by_path', '', get=(pop_menu_path,), click=(pop_menu_path,))
+CTL_ATTRS.add_class_attr('Tree', 'node_by_path', get=lambda w, p: w.Node(*p), click=lambda w, p: w.Node(*p).Click())
+
+
+CTL_ATTRS.add_attr('selected_node', '', get=())
+CTL_ATTRS.add_class_attr('Tree', 'selected_node', get=lambda x: x.SelectedNode)
+
+CTL_ATTRS.add_attr('collapse', '', do=())
+CTL_ATTRS.add_class_attr('TreeNode', 'collapse', do=lambda x: x.Collapse())
+CTL_ATTRS.add_attr('expand', '', do=())
+CTL_ATTRS.add_class_attr('TreeNode', 'expand', do=lambda x: x.Expand())
+
+
+
 
 def menu_item_clicker(m, p):
-    logging.warning("CLICKER")
+    #logging.warning("CLICKER")
     item = m.MenuItem(*p)
     item.Click()
     return item
@@ -608,6 +628,7 @@ def tab_get_selected_idx(x):
 
 CTL_ATTRS.add_attr('selected', '', get=(), set=(pop,))
 CTL_ATTRS.add_class_attr('ListBox', 'selected', get=listbox_get_selected, set=listbox_select_idx)
+CTL_ATTRS.add_class_attr('TreeNode', 'selected', get=lambda x: x.IsSelected, set=lambda x, v: x.Select() if str_2_bool(v) else x.UnSelect())
 CTL_ATTRS.add_attr('idx_selected', '', get=(), set=(pop_type(int),))
 CTL_ATTRS.add_class_attr('ListBox', 'idx_selected', get=listbox_get_selected_idx, set=lambda x, i: x.Select(i))
 CTL_ATTRS.add_attr('num_items', '', get=(), wait=(pop_type(int),))

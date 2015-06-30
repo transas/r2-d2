@@ -27,6 +27,18 @@
                             <StackPanel  Orientation="Vertical">
                                 <CheckBox Height="16" Name="checkBox1">CheckBox1</CheckBox>
                                 <CheckBox Height="16" Name="checkBox2">CheckBox2</CheckBox>
+                                <TreeView Height="150" Name="treeView1">
+                                    <TreeViewItem Header="Level 1" IsExpanded="True">
+                                        <TreeViewItem Header="Level 2.1" >
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="Level 2.2" IsExpanded="True">
+                                            <TreeViewItem Header="Level 3.1" />
+                                            <TreeViewItem Header="Level 3.2" />
+                                        </TreeViewItem>
+                                        <TreeViewItem Header="Level 2.3" />
+                                    </TreeViewItem>
+                                    <TreeViewItem Header="Level 1bis" />
+                                </TreeView>
                             </StackPanel>
                         </TabItem>
                         <TabItem Header="tabItem2" Name="tabItem2">
