@@ -295,3 +295,7 @@ Tree
     ${nt}=    Ctl Attr    ${n}    text
     Should Be Equal As Strings    Level 3.1    ${nt}
     Ctl Attr    @{subnodes}[1]    do expand
+
+User error
+    Run Keyword And Expect Error    UserError: Some user error message (Wnd Filter failed: The result does not match 'single' flag, found 0 item(s))    Wnd Get    re_title    ^IronPythonWPFQQ$    single    assert
+    ...    timeout    0s    failure_text    Some user error message

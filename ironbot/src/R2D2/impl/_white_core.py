@@ -2,7 +2,7 @@ import logging
 import re
 
 from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool, pop_menu_path, str_2_bool
-from _util import IronbotException, waiting_iterator, result_modifier
+from _util import IronbotException, waiting_iterator, result_modifier, error_decorator
 from _attr import AttributeDict
 from _attr import attr_checker, re_checker, my_getattr, attr_reader
 
@@ -124,6 +124,7 @@ LAUNCH_PARAMS = (
        'test_teardown': (('teardown', fixed_val('test')),),
        'assert': (('_assert', fixed_val(True)),),
        'params': (('params', pop),),
+       'failure_text': (('failure_text', pop),),
     }
 )
 
@@ -141,6 +142,7 @@ def re_check_aid(obj, rexp):
 
 
 @robot_args(LAUNCH_PARAMS)
+@error_decorator
 def app_launch(executable, teardown=None, params='', _assert=False):
     """
     Launches an app. The first parameter is a path to the app's executable. Optional 'suite_teardown' or 'test_teardown'
@@ -242,6 +244,7 @@ PROC_FILTER_PARAMS = (
        'none': (('none', fixed_val(True)),),
        'number': (('number', pop_type(int)),),
        'assert': (('_assert', fixed_val(True)),),
+       'failure_text': (('failure_text', pop),),
     }
 )
 
@@ -256,6 +259,7 @@ def _negate(flag, f):
     return _n
 
 @robot_args(PROC_FILTER_PARAMS, PROC_ATTRS, insert_attr_dict=True)
+@error_decorator
 def proc_filter(pli, none=False, number=None, single=False, _assert=False, negative=False, attributes={}, attr_dict=None):
     li = list(pli)
     attr_filters = attributes.get('wait', [])
@@ -293,11 +297,13 @@ APP_STATE_PARAMS = (
        'single': (('single', fixed_val(True)),),
        'none': (('none', fixed_val(True)),),
        'number': (('number', pop_type(int)),),
+       'failure_text': (('failure_text', pop),),
     }
 )
 
 
 @robot_args(APP_STATE_PARAMS)
+@error_decorator
 def app_state(app, running=True, timeout=Delay('0s'), any=False, all=False, single=False, none=False, _assert=False, number=None):
     """
     Test
@@ -344,11 +350,13 @@ APP_ATTACH_PARAMS = (
     (pop,), {
        'suite_teardown': (('teardown', fixed_val('suite')),),
        'test_teardown': (('teardown', fixed_val('test')),),
+       'failure_text': (('failure_text', pop),),
     }
 )
 
 
 @robot_args(APP_ATTACH_PARAMS)
+@error_decorator
 def app_attach(processes, teardown=None):
     single = not isinstance(processes, list)
     if single:
@@ -438,7 +446,9 @@ def _wnd_filter(wlist, single=False, negative=False, none=False, number=None, at
     logging.warning('Wnd Filter failed: %s' % msg)
     return res
 
-wnd_filter = robot_args(WND_FILTER_PARAMS, WND_ATTRS, insert_attr_dict=True)(_wnd_filter)
+
+wnd_filter = error_decorator(_wnd_filter)
+wnd_filter = robot_args(WND_FILTER_PARAMS, WND_ATTRS, insert_attr_dict=True)(wnd_filter)
 
 
 WND_GET_PARAMS = (
@@ -450,10 +460,12 @@ WND_GET_PARAMS = (
        'number': (('number', pop_type(int)),),
        'none': (('none', fixed_val(True)),),
        'assert': (('_assert', fixed_val(True)),),
+       'failure_text': (('failure_text', pop),),
     }
 )
 
 @robot_args(WND_GET_PARAMS, WND_ATTRS, insert_attr_dict=True)
+@error_decorator
 def wnd_get(app=None, parent=None, attr_dict=None, **kw):
     if app and parent:
         raise IronbotException("You may specify either 'app' or 'parent' parameter, not both")
@@ -671,10 +683,12 @@ CTL_GET_PARAMS = (
        'none': (('none', fixed_val(True)),),
        'number': (('number', pop_type(int)),),
        'assert': (('_assert', fixed_val(True)),),
+       'failure_text': (('failure_text', pop),),
 })
 
 
 @robot_args(CTL_GET_PARAMS, CTL_ATTRS, insert_attr_dict=True)
+@error_decorator
 def ctl_get(c_type, parent=None, src_li=None, timeout=Delay('0s'), number=None, negative=False, single=False, none=False, _assert=False, index=None, attributes={}, attr_dict=None):
     ct = CONTROL_TYPES.get(c_type)
     if ct:
@@ -706,7 +720,8 @@ def ctl_get(c_type, parent=None, src_li=None, timeout=Delay('0s'), number=None, 
     return res
 
 
-CTL_ATTR_PARAMS = ((pop,), {'timeout': (('timeout', pop_type(Delay)),), 'assert': (('_assert', fixed_val(True)),),})
+CTL_ATTR_PARAMS = ((pop,), {'timeout': (('timeout', pop_type(Delay)),), 'assert': (('_assert', fixed_val(True)),),
+                            'failure_text': (('failure_text', pop),),})
 WND_ATTR_PARAMS = CTL_ATTR_PARAMS
 PROC_ATTR_PARAMS = CTL_ATTR_PARAMS
 
@@ -716,6 +731,7 @@ def _dict_pop(d, name, default):
         del d[name]
     return res
 
+@error_decorator
 def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
     single = False
     ctls = controls
