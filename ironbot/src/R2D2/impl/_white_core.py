@@ -699,6 +699,9 @@ def ctl_get(c_type, parent=None, src_li=None, timeout=Delay('0s'), number=None, 
     for _ in waiting_iterator(timeout):
         if parent:
             #logging.warning(repr(parent) + repr(dir(parent)))
+
+            if isinstance(parent, list):
+                raise IronbotException("Ctl Get: 'parent' should contain a single window, not a list (check if there is a 'single' or 'index' parameter when searching for that window).")
             mult = parent.GetMultiple(criteria)
             li = [elem for elem in mult]
         elif src_li:

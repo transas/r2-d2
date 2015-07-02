@@ -299,3 +299,5 @@ Tree
 User error
     Run Keyword And Expect Error    UserError: Some user error message (Wnd Filter failed: The result does not match 'single' flag, found 0 item(s))    Wnd Get    re_title    ^IronPythonWPFQQ$    single    assert
     ...    timeout    0s    failure_text    Some user error message
+    @{li}=    Create List    1    2    3
+    Run Keyword And Expect Error    IronbotException: Ctl Get: 'parent' should contain a single window, not a list (check if there is a 'single' or 'index' parameter when searching for that window).     Ctl Get    all    parent    ${li}
