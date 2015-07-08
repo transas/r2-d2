@@ -300,4 +300,23 @@ User error
     Run Keyword And Expect Error    UserError: Some user error message (Wnd Filter failed: The result does not match 'single' flag, found 0 item(s))    Wnd Get    re_title    ^IronPythonWPFQQ$    single    assert
     ...    timeout    0s    failure_text    Some user error message
     @{li}=    Create List    1    2    3
-    Run Keyword And Expect Error    IronbotException: Ctl Get: 'parent' should contain a single window, not a list (check if there is a 'single' or 'index' parameter when searching for that window).     Ctl Get    all    parent    ${li}
+    Run Keyword And Expect Error    IronbotException: Ctl Get: 'parent' should contain a single window, not a list (check if there is a 'single' or 'index' parameter when searching for that window).    Ctl Get    all    parent    ${li}
+
+Keyboard
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
+    ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
+    ...    assert    timeout    5s
+    ${kbd}=    Wnd Attr    ${win1}    keyboard
+    ${text}=    Ctl Get    edit    parent    ${win1}    single    timeout
+    ...    2s    assert
+    Ctl Attr    ${text}    do focus
+    Kbd Attr    ${kbd}    hold    CONTROL    press    A    leave
+    ...    CONTROL    press    DELETE
+    Kbd Attr    ${kbd}    enter    Some text IS here
+    Comment    Kbd Attr    ${kbd}    hold    ALT    press    F4
+    ...    leave    ALT
+    ${val}=    Ctl Attr    ${text}    text
+    Should Be Equal    ${val}    Some text IS here
+    Kbd Attr    ${kbd}    hold    ALT    press    F4    leave
+    ...    ALT
+    App State    ${app1}    not_running    timeout    ~10s    assert

@@ -2,6 +2,7 @@ from impl._white_core import app_launch, app_state, app_attach
 from impl._white_core import proc_list, proc_filter, proc_attr
 from impl._white_core import wnd_get, wnd_filter, wnd_attr
 from impl._white_core import ctl_get, ctl_attr
+from impl._white_core import kbd_attr
 
 ROBOT_LIBRARY_SCOPE = 'GLOBAL'
 

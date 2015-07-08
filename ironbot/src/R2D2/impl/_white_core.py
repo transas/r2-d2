@@ -1,11 +1,6 @@
 import logging
 import re
 
-from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool, pop_menu_path, str_2_bool
-from _util import IronbotException, waiting_iterator, result_modifier, error_decorator
-from _attr import AttributeDict
-from _attr import attr_checker, re_checker, my_getattr, attr_reader
-
 try:
     import clr
     clr.AddReference("White.Core")
@@ -14,7 +9,7 @@ try:
     clr.AddReference("UIAutomationClient")
     clr.AddReference("UIAutomationTypes")
 
-
+    from White.Core.WindowsAPI.KeyboardInput import SpecialKeys
 
     import White.Core.Application as Application
     from System.Diagnostics import ProcessStartInfo, Process
@@ -46,6 +41,12 @@ except:
     from traceback import format_exc
     logging.error(format_exc())
 
+
+from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool, pop_menu_path, str_2_bool
+from _util import IronbotException, waiting_iterator, result_modifier, error_decorator
+from _attr import AttributeDict
+from _attr import attr_checker, re_checker, my_getattr, attr_reader
+from _keys import pop_key, pop_key_string
 
 def full_text(parent):
     labels = [i for i in parent.GetMultiple(SearchCriteria.ByControlType(Label))]
@@ -372,6 +373,8 @@ def app_attach(processes, teardown=None):
 
 
 WND_ATTRS = AttributeDict()
+WND_ATTRS.add_attr('keyboard', '', get=())
+WND_ATTRS.add_class_attr('Window', 'keyboard', get=lambda x: x.Keyboard)
 WND_ATTRS.add_attr('id', '', wait=(pop,), get=())
 WND_ATTRS.add_class_attr('Window', 'id', wait=attr_checker('Id'), get=lambda x: x.Id)
 WND_ATTRS.add_attr('re_id', '', wait=(pop_re,),)
@@ -792,6 +795,24 @@ def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
         return res[0]
     return res
 
+
+KBD_ATTR_PARAMS = ((pop,), {'failure_text': (('failure_text', pop),),})
+
+KBD_ATTRS = AttributeDict()
+KBD_ATTRS.add_attr('hold', '', do=(pop_key,))
+KBD_ATTRS.add_attr('leave', '', do=(pop_key,))
+KBD_ATTRS.add_attr('press', '', do=(pop_key,))
+KBD_ATTRS.add_attr('enter', '', do=(pop_key_string,))
+
+KBD_ATTRS.add_class_attr('AttachedKeyboard', 'hold', do=lambda x, k: k.hold(x))
+KBD_ATTRS.add_class_attr('AttachedKeyboard', 'leave', do=lambda x, k: k.leave(x))
+KBD_ATTRS.add_class_attr('AttachedKeyboard', 'press', do=lambda x, k: k.press(x))
+KBD_ATTRS.add_class_attr('AttachedKeyboard', 'enter', do=lambda x, k: k.enter(x))
+
+
+
+
 ctl_attr = robot_args(CTL_ATTR_PARAMS, CTL_ATTRS, default_action='get', insert_attr_dict=True)(_attr)
 wnd_attr = robot_args(WND_ATTR_PARAMS, WND_ATTRS, default_action='get', insert_attr_dict=True)(_attr)
 proc_attr = robot_args(PROC_ATTR_PARAMS, PROC_ATTRS, default_action='get', insert_attr_dict=True)(_attr)
+kbd_attr = robot_args(KBD_ATTR_PARAMS, KBD_ATTRS, default_action='do', insert_attr_dict=True)(_attr)
