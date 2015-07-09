@@ -26,9 +26,8 @@ try:
     #logging.warning(repr(dir(White.Core.UIItems)))
     from White.Core.UIItems.TreeItems import Tree, TreeNode
     #from White.Core.UIItems.WindowItems import Window, DisplayState
-    #from White.Core.UIItems.WindowStripControls import ToolStrip, MenuBar
     from White.Core.UIItems.MenuItems import Menu
-    from White.Core.UIItems.WindowStripControls import MenuBar
+    from White.Core.UIItems.WindowStripControls import ToolStrip, MenuBar
     #from White.Core.UIItems.ListBoxItems import ComboBox
     #from White.Core.UIItems.TableItems import Table
 
@@ -528,6 +527,7 @@ CONTROL_TYPES = {
     'tab': Tab,
     'tree': Tree,
     'treenode': TreeNode,
+    'toolbar': ToolStrip,
 }
 
 
@@ -606,6 +606,7 @@ def menu_item_clicker(m, p):
 
 CTL_ATTRS.add_attr('menuitem', '', get=(pop_menu_path,), click=(pop_menu_path,))
 CTL_ATTRS.add_class_attr('MenuBar', 'menuitem', get=lambda w, p: w.MenuItem(*p), click=menu_item_clicker)
+CTL_ATTRS.add_class_attr('ToolStrip', 'menuitem', get=lambda w, p: w.MenuItem(*p), click=menu_item_clicker)
 #CTL_ATTRS.add_attr('submenu', '', get=(pop,))
 #CTL_ATTRS.add_class_attr('MenuBar', 'submenu', get=lambda w, n: w.SubMenu(n))
 

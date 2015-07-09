@@ -1,6 +1,7 @@
 *** Settings ***
 Suite Setup
 Library           ../../src/R2D2/ironbot.py
+Library           OperatingSystem
 
 *** Test Cases ***
 App keywords
@@ -320,3 +321,23 @@ Keyboard
     Kbd Attr    ${kbd}    hold    ALT    press    F4    leave
     ...    ALT
     App State    ${app1}    not_running    timeout    ~10s    assert
+
+Toolbar
+    ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
+    ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
+    ...    assert    timeout    5s
+    ${b}=    Ctl Get    button    parent    ${win1}    automation_id    AID_Button1
+    ...    single    assert    timeout    5s
+    Ctl Attr    ${b}    do click
+    ${win2}=    Wnd Get    app    ${app1}    re_title    ^AboutWindow$    single
+    ...    assert    timeout    5s
+    ${tb1}=    Ctl Get    toolbar    parent    ${win2}    automation_id    Toolbar1
+    ...    single    assert    timeout    5s
+    ${tb2}=    Ctl Get    toolbar    parent    ${win2}    automation_id    Toolbar2
+    ...    single    assert    timeout    5s
+    ${i1}=    Ctl Attr    ${tb1}    menuitem    MenuItem
+    Ctl Attr    ${i1}    do click
+    ${txt}=    Ctl Get    text    parent    ${win2}    automation_id    Text1
+    ...    single    assert    timeout    5s
+    ${v}=    Ctl Attr    ${txt}    name
+    Should Be Equal    ${v}    Click1

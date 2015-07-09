@@ -25,6 +25,12 @@ class AboutWindow(Window):
     def __init__(selfAbout):
         wpf.LoadComponent(selfAbout, join(MY_DIR, 'AboutWindow.xaml'))
 
+    def Click1(self, sender, e):
+        self.textBlock1.Text = "Click1"
+
+    def Click2(self, sender, e):
+        self.textBlock1.Text = "Click2"
+
 class MyWindow(Window):
     def __init__(self):
         wpf.LoadComponent(self, join(MY_DIR, 'IronPythonWPF.xaml'))
