@@ -7,7 +7,8 @@ Library           OperatingSystem
 App keywords
     ${v}=    App Launch    nonexistent_app
     Should Not Be True    ${v}
-    Run Keyword And Expect Error    WindowsError: [Errno 22] The system cannot find the file specified    App Launch    nonexistent_app    assert
+    ${e22}=    Run Keyword And Expect Error    *    App Launch    nonexistent_app    assert
+    Should Contain    ${e22}     WindowsError: [Errno 22]
     ${app}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    test_teardown    assert
     ${v}=    App State    ${app}    timeout    5s    assert    running
     Should Be True    ${v}
