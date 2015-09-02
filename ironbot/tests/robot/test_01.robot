@@ -8,7 +8,7 @@ App keywords
     ${v}=    App Launch    nonexistent_app
     Should Not Be True    ${v}
     ${e22}=    Run Keyword And Expect Error    *    App Launch    nonexistent_app    assert
-    Should Contain    ${e22}     WindowsError: [Errno 22]
+    Should Contain    ${e22}    WindowsError: [Errno 22]
     ${app}=    App Launch    ipy.exe    params    ..\\gui_progs\\winforms\\gui.py    test_teardown    assert
     ${v}=    App State    ${app}    timeout    5s    assert    running
     Should Be True    ${v}
@@ -53,7 +53,7 @@ Wnd keywords
     ...    assert    timeout    5s
     Comment    App State    ${app1}    not_running    timeout    3s
     ${win2}=    Wnd Get    app    ${app1}    title    IronPythonWPF    single
-    ...    timeout    5s    assert
+    ...    timeout    15s    assert
     @{li}=    Wnd Get    app    ${app1}
     ${l}=    Get Length    ${li}
     Should Be Equal As Integers    ${l}    2
@@ -165,20 +165,34 @@ Menus
     Wnd Attr    ${win}    do wait_while_busy
     ${menu}=    Wnd Attr    ${win}    get menu
     ${menu}=    Ctl Get    menu    parent    ${win}    name    Application
-    ...    single    assert
+    ...    single
+    ${menu}=    Run Keyword If    ${menu}    Set Variable    ${menu}
+    ...    ELSE    Ctl Get    menu    parent    ${win}    name
+    ...    Приложение    single    assert
     ${about}=    Ctl Attr    ${menu}    get menuitem    Help    About Notepad
+    ${about}=    Run Keyword If    '${about}' != ''    Set Variable    ${about}
+    ...    ELSE    Ctl Attr    ${menu}    get menuitem    Справка    О программе
     Ctl Attr    ${about}    do click
     ${dlg}=    Wnd Get    parent    ${win}    timeout    5s    assert
     ...    single
     ${btn}=    Ctl Get    button    parent    ${win}    name    OK
-    ...    timeout    5s    assert    single
-    Ctl Attr    ${btn}    do click
+    ...    timeout    5s    single
+    ${btn}=    Run Keyword If    ${btn}    Set Variable    ${btn}
+    ...    ELSE    Ctl Get    button    parent    ${win}    name
+    ...    ОК    timeout    5s    assert    single
+    Wnd Attr    ${dlg}    do wait_while_busy
+    Wnd Attr    ${dlg}    do close
+    Comment    Ctl Attr    ${btn}    do click
     Wnd Get    parent    ${win}    timeout    5s    assert    none
     Wnd Attr    ${win}    do wait_while_busy
+    ${menu}=    Wnd Attr    ${win}    get menu
     ${menu}=    Ctl Get    menu    parent    ${win}    name    Application
-    ...    single    assert
-    ${exit}=    Ctl Attr    ${menu}    click menuitem    File    Exit    <END>
-    Comment    Ctl Attr    ${exit}    do click
+    ...    single
+    ${menu}=    Run Keyword If    ${menu}    Set Variable    ${menu}
+    ...    ELSE    Ctl Get    menu    parent    ${win}    name
+    ...    Приложение    single    assert
+    Run Keyword And Ignore Error    Ctl Attr    ${menu}    click menuitem    File    Exit    <END>
+    Run Keyword And Ignore Error    Ctl Attr    ${menu}    click menuitem    Файл    Выход    <END>
 
 Checkboxes
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert    test_teardown
@@ -307,7 +321,7 @@ User error
 Keyboard
     ${app1}=    App Launch    ipy.exe    params    ..\\gui_progs\\wpf\\gui.py    assert
     ${win1}=    Wnd Get    app    ${app1}    re_title    ^IronPythonWPF$    single
-    ...    assert    timeout    5s
+    ...    assert    timeout    ~10s
     ${kbd}=    Wnd Attr    ${win1}    keyboard
     ${text}=    Ctl Get    edit    parent    ${win1}    single    timeout
     ...    2s    assert
