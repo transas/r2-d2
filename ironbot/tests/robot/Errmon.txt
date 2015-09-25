@@ -1,0 +1,11 @@
+*** Settings ***
+Library           ../../src/R2D2/ironbot.py
+
+*** Test Cases ***
+WPF_KILLER
+    ${win1}=    Wnd Get    title    IronPythonWPF    single    timeout    5s
+    Wnd Attr    ${win1}    do close
+
+WINFORMS_KILLER
+    ${win1}=    Wnd Get    title    Hello World App    single    timeout    5s
+    Wnd Attr    ${win1}    do close

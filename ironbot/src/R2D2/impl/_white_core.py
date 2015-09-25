@@ -42,7 +42,7 @@ except:
 
 
 from _params import Delay, fixed_val, pop, pop_re, pop_type, robot_args, pop_bool, pop_menu_path, str_2_bool
-from _util import IronbotException, waiting_iterator, result_modifier, error_decorator
+from _util import IronbotException, waiting_iterator, result_modifier, error_decorator, stop_monitoring, setup_monitoring
 from _attr import AttributeDict
 from _attr import attr_checker, re_checker, my_getattr, attr_reader
 from _keys import pop_key, pop_key_string
@@ -102,12 +102,14 @@ def on_enter_suite():
     CONTROLLED_APPS.append([])
     Delay.do_benchmarking()
 
+
 def on_leave_test():
     for a in CONTROLLED_APPS[-1]:
         if not a.HasExited:
             logging.warning('Test teardown: an app is still running')
             a.Dispose()
     del CONTROLLED_APPS[-1]
+    stop_monitoring()
 
 
 def on_leave_suite():
@@ -796,6 +798,29 @@ def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
     if single:
         return res[0]
     return res
+
+
+
+DREAM_PARAMS = (
+    (pop_type(Delay),), {})
+
+
+@robot_args(DREAM_PARAMS, AttributeDict(), insert_attr_dict=False)
+def dream(delay):
+    for _ in waiting_iterator(delay):
+        pass
+
+
+SETUP_MON_PARAMS = (
+    (pop_type(Delay), pop_type(Delay), pop, pop_menu_path), {})
+
+@robot_args(SETUP_MON_PARAMS, AttributeDict(), insert_attr_dict=False)
+def setup_monitors(delay, total_delay, suite,tests):
+    setup_monitoring(delay, total_delay, suite, tests)
+
+
+def finalize_monitors():
+    stop_monitoring()
 
 
 KBD_ATTR_PARAMS = ((pop,), {'failure_text': (('failure_text', pop),),})

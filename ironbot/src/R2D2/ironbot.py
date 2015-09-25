@@ -2,7 +2,8 @@ from impl._white_core import app_launch, app_state, app_attach
 from impl._white_core import proc_list, proc_filter, proc_attr
 from impl._white_core import wnd_get, wnd_filter, wnd_attr
 from impl._white_core import ctl_get, ctl_attr
-from impl._white_core import kbd_attr
+from impl._white_core import setup_monitors, finalize_monitors
+from impl._white_core import kbd_attr, dream
 
 ROBOT_LIBRARY_SCOPE = 'GLOBAL'
 
@@ -24,6 +25,7 @@ class _Listener:
         on_enter_test()
 
     def end_test(self, name, attrs):
+        import logging
         from impl._white_core import on_leave_test
         on_leave_test()
 

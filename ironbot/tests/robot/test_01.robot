@@ -325,7 +325,9 @@ Keyboard
     ${kbd}=    Wnd Attr    ${win1}    keyboard
     ${text}=    Ctl Get    edit    parent    ${win1}    single    timeout
     ...    ~2s    assert
+    Wnd Attr    ${win1}    do wait_while_busy
     Ctl Attr    ${text}    do focus
+    Comment    Dream    ~2s
     Kbd Attr    ${kbd}    hold    CONTROL    press    A    leave
     ...    CONTROL    press    DELETE
     Kbd Attr    ${kbd}    enter    Some text IS here
@@ -356,3 +358,8 @@ Toolbar
     ...    single    assert    timeout    ~5s
     ${v}=    Ctl Attr    ${txt}    name
     Should Be Equal    ${v}    Click1
+
+Errmon_test
+    Setup Monitors    10s    30s    Errmon_01.robot    Errwnd_test
+    Dream    20s
+    Finalize Monitors

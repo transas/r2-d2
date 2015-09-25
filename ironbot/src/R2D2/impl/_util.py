@@ -1,6 +1,7 @@
 from time import time, clock, sleep
-import os
+from os.path import dirname, abspath, basename, join
 import subprocess
+import sys
 
 FASTER_COMPUTER = 1
 SLOW_COMPUTER = 3
@@ -195,16 +196,28 @@ class Delay(object):
 TIME_ACCURACY = 0.0001
 WAIT_GRANULARITY = 0.2
 
+MONITORING = None
+
+
+def set_monitoring(monitoring):
+    global MONITORING
+    MONITORING = monitoring
+
+
 def waiting_iterator(timeout):
     t0 = clock()
     first_loop = True
     while first_loop or (timeout and timeout >= clock() - t0 - TIME_ACCURACY):
         first_loop = False
+        if MONITORING:
+            MONITORING.check_monitors()
         yield
         if timeout and timeout.value:
             sleep(WAIT_GRANULARITY)
     if timeout and timeout.value:
         yield
+    if MONITORING:
+        MONITORING.check_monitors()
 
 def _negate(not_found, v):
     if not_found:
@@ -361,3 +374,106 @@ def result_modifier(res, src_list=None, not_found=False, any=False, all=False, s
             return make_prefer_bool(initial_single, res[0], None if initial_single else 'Expected single result, got something')
         return make_prefer_bool(False, res, "The result does not match 'single' or 'none' value")
     return make_prefer_bool(True, res, None)
+
+
+class ErrorMonitor(object):
+    """
+    >>> em = ErrorMonitor('../../../tests/robot/errmon_01.robot', 'Errwnd_test', 'NONE')
+    """
+    errors = 0
+
+    def __init__(self, exec_file, test, result_file):
+        self.exec_file = exec_file
+        self.result_file = result_file
+        self.test = test
+        self.popen = None
+        self.start()
+
+    def start(self):
+        if self.popen:
+            if self.popen.poll() is None:
+                return False
+            self.popen = None
+
+        #import logging
+        #logging.critical('' % ())
+        self.popen = subprocess.Popen([sys.executable, join(dirname(abspath(__file__)), '_errmon.py'),
+                                       self.exec_file, self.test, self.result_file])
+        return True
+
+    def check_state(self):
+        #import logging
+        #logging.error(repr(self.popen.poll()))
+        if self.popen.poll() is not None:
+            if self.popen.returncode:
+                self.errors += 1
+            self.start()
+
+    def kill(self):
+        if self.popen and self.popen.poll():
+            self.popen.kill()
+            self.popen = None
+
+
+
+class Monitoring(object):
+    errors = 0
+
+    def __init__(self, ft=Delay('30s'), ftt=Delay('1h')):
+        self.monitors = []
+        self.FINALIZATION_TOTAL_TIMEOUT = ftt
+        self.FINALIZATION_TIMEOUT = ft
+
+    def add_monitor(self, exec_file, test):
+        self.monitors.append(ErrorMonitor(exec_file, test, 'NONE'))
+
+    def kill_monitors(self):
+        for m in self.monitors:
+            m.kill()
+        self.monitors = []
+
+    def check_monitors(self, finalize=True):
+        for m in self.monitors:
+            errs = m.errors
+            m.check_state()
+            if errs != m.errors:
+                self.errors += m.errors - errs
+        if self.errors and finalize:
+            self.finalize_errors()
+            raise IronbotException("Error monitors detected a crash...")
+
+    def finalize_errors(self):
+        t_total = clock()
+        first_outer_loop = True
+        while first_outer_loop or (self.FINALIZATION_TOTAL_TIMEOUT and self.FINALIZATION_TOTAL_TIMEOUT >= clock() - t_total - TIME_ACCURACY):
+            t0 = clock()
+            first_loop = False
+            while first_loop or (self.FINALIZATION_TIMEOUT and self.FINALIZATION_TIMEOUT >= clock() - t0 - TIME_ACCURACY):
+                first_loop = False
+                old_errs = self.errors
+                self.check_monitors(False)
+                if old_errs != self.errors:
+                    t0 = clock()
+                if self.FINALIZATION_TIMEOUT and self.FINALIZATION_TIMEOUT.value:
+                    sleep(WAIT_GRANULARITY)
+
+
+def stop_monitoring():
+    global MONITORING
+    failure = False
+    if MONITORING:
+        MONITORING.kill_monitors()
+        failure = MONITORING.errors
+    MONITORING = None
+    if failure:
+        raise IronbotException("Some of the crash monitors detected a crash...")
+
+
+def setup_monitoring(delay, total_delay, suite, tests):
+    global MONITORING
+    stop_monitoring()
+    MONITORING = Monitoring(delay, total_delay)
+    for t in tests:
+        MONITORING.add_monitor(suite, t)
+
+
