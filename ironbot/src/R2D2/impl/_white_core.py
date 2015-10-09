@@ -147,9 +147,14 @@ def re_check_aid(obj, rexp):
 @error_decorator
 def app_launch(executable, teardown=None, params='', _assert=False):
     """
+    App Launch | <executable> [ | params | <cmdline parameters string> ] [ | flags and params ]
+
     Launches an app. The first parameter is a path to the app's executable. Optional 'suite_teardown' or 'test_teardown'
     flags force to kill the app at the end of the suite or of the test, respectively (if still running).
     A 'params' named parameter is also optional, should be followed by a parameters string (all args in one).
+
+    :return: An application object or None in case of failure if "assert" flag is not present.
+
     """
     #logging.warning('EXEC ' + executable + ' ' + params)
     pi = ProcessStartInfo(executable, params)
@@ -170,6 +175,13 @@ def app_launch(executable, teardown=None, params='', _assert=False):
 
 
 def proc_list():
+    """
+    Proc List
+
+    Returns a list of process objects, one object  for each of the running processes
+
+    :return: A Python list containing the process objects.
+    """
     return [p for p in Process.GetProcesses()]
 
 
@@ -263,6 +275,17 @@ def _negate(flag, f):
 @robot_args(PROC_FILTER_PARAMS, PROC_ATTRS, insert_attr_dict=True)
 @error_decorator
 def proc_filter(pli, none=False, number=None, single=False, _assert=False, negative=False, attributes={}, attr_dict=None):
+    """
+    Proc Filter | <list> | named params & attributes
+
+    Filters a process list.
+
+    :return: A list of processes or False (e.g. in case of "none" flag) if "single" flag is not specified.
+             A single process object or False otherwise.
+             If "assert" flag is present, False is never returned, the keyword fails instead.
+    """
+
+
     li = list(pli)
     attr_filters = attributes.get('wait', [])
     for attr, params in attr_filters:
@@ -360,6 +383,17 @@ APP_ATTACH_PARAMS = (
 @robot_args(APP_ATTACH_PARAMS)
 @error_decorator
 def app_attach(processes, teardown=None):
+    """
+    App Attach | <proc_or_proc_list> [ | test_teardown/suite_teardown ]
+
+    Creates application objects for a process or for a list of processes. If test_teardown or
+    suite_teardown is present, the applications are going to be terminated when the test (or
+    the suite) finishes.
+
+    :return: List of applications (if a list of processes is given) or an
+        application (in case of a single process that is not wrapped into a list object).
+        Note: a list containing a single process is still a list.
+    """
     single = not isinstance(processes, list)
     if single:
         processes = [processes]
@@ -807,6 +841,14 @@ DREAM_PARAMS = (
 
 @robot_args(DREAM_PARAMS, AttributeDict(), insert_attr_dict=False)
 def dream(delay):
+    """
+    Dream | <delay>
+
+    Waits for a given period of tima, and checks for events from error handlers when waiting.
+
+    :param delay:
+    :return: None
+    """
     for _ in waiting_iterator(delay):
         pass
 
@@ -814,12 +856,32 @@ def dream(delay):
 SETUP_MON_PARAMS = (
     (pop_type(Delay), pop_type(Delay), pop, pop_menu_path), {})
 
+
 @robot_args(SETUP_MON_PARAMS, AttributeDict(), insert_attr_dict=False)
-def setup_monitors(delay, total_delay, suite,tests):
+def setup_monitors(delay, total_delay, suite, tests):
+    """
+    Setup Monitors | <delay> | <total_delay> | <suite> | *<tests>
+
+    Sets up the error monitoring process.
+
+    :param delay -- max delay between errors that go in a single sequence
+    :param total_delay -- max timeout for repetitive errors handling
+    :param suite -- path to a test suite file
+    :param tests -- handler names (test names) from the <suite>. Those tests are run as error handlers.
+
+    :return: None
+    """
     setup_monitoring(delay, total_delay, suite, tests)
 
 
 def finalize_monitors():
+    """
+    Finalize Monitors
+
+    Finalizes error handling: checks if there were errors detected (and fails if yes). Stops the handlers.
+
+    :return: None
+    """
     stop_monitoring()
 
 
