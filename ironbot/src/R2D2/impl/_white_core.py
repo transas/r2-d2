@@ -156,7 +156,6 @@ def app_launch(executable, teardown=None, params='', _assert=False):
     :return: An application object or None in case of failure if "assert" flag is not present.
 
     """
-    #logging.warning('EXEC ' + executable + ' ' + params)
     pi = ProcessStartInfo(executable, params)
     try:
         app = Application.Launch(pi)
@@ -278,7 +277,7 @@ def proc_filter(pli, none=False, number=None, single=False, _assert=False, negat
     """
     Proc Filter | <list> | named params & attributes
 
-    Filters a process list.
+    Filters a process list using attributes. The only action is "wait" (defaut).
 
     :return: A list of processes or False (e.g. in case of "none" flag) if "single" flag is not specified.
              A single process object or False otherwise.
@@ -331,7 +330,7 @@ APP_STATE_PARAMS = (
 @error_decorator
 def app_state(app, running=True, timeout=Delay('0s'), any=False, all=False, single=False, none=False, _assert=False, number=None):
     """
-    Test
+    App State | <app> | params
     :param app: required, positional -- an application object;
     :param running: an optional flag -- the result is True if the app is running;
     :param not_running: an optional flag -- the result is True if the app is not running;
@@ -465,6 +464,13 @@ WND_FILTER_PARAMS = (
 
 
 def _wnd_filter(wlist, single=False, negative=False, none=False, number=None, attributes={}, _assert=False, attr_dict=None):
+    """
+        Wnd Filter | <list> | params and attributes
+
+    Filters windows from a list by attributes.
+
+    :return List (or a single window if "single" is given).
+    """
     li = list(wlist)
     attr_filters = attributes.get('wait', [])
 
@@ -506,6 +512,20 @@ WND_GET_PARAMS = (
 @robot_args(WND_GET_PARAMS, WND_ATTRS, insert_attr_dict=True)
 @error_decorator
 def wnd_get(app=None, parent=None, attr_dict=None, **kw):
+    """
+    Wnd Get | params and attrs
+
+    Finds windows on desktop, in app, or by parent window (in case of a modal window).
+
+    :param parent: (named) specifies a parent window. Incompatible with "app".
+
+    :param app: (named) specifies an application object.
+
+    If both parent and app are absent, the keyword looks for a window on desktop.
+
+    :return: List of windows or a single window (if "single is given").
+
+    """
     if app and parent:
         raise IronbotException("You may specify either 'app' or 'parent' parameter, not both")
     timeout = kw.get('timeout', None)
@@ -731,6 +751,15 @@ CTL_GET_PARAMS = (
 @robot_args(CTL_GET_PARAMS, CTL_ATTRS, insert_attr_dict=True)
 @error_decorator
 def ctl_get(c_type, parent=None, src_li=None, timeout=Delay('0s'), number=None, negative=False, single=False, none=False, _assert=False, index=None, attributes={}, attr_dict=None):
+    """
+    Ctl Get | <c_type> [| <parent>/<src_li> ] | attributes & paramsa
+    :param c_type: control type name (all, button, edit, menu, list, listitem, radio, radiobutton,
+            checkbox, tab, tree, treenode, toolbar)
+    :param parent: an optional named parameter, parent window. Incompatible with src_li
+    :param src_li: an optional named parameter, a list of controls to filter.
+    :param negative: inverts filtering
+    :return:
+    """
     ct = CONTROL_TYPES.get(c_type)
     if ct:
         criteria = SearchCriteria.ByControlType(CONTROL_TYPES.get(c_type))
@@ -777,6 +806,15 @@ def _dict_pop(d, name, default):
 
 @error_decorator
 def _attr(controls, attributes, attr_dict, timeout=Delay('0s'), _assert=False):
+    """
+    Kbd/Ctl/Proc/Wnd Attr | <objects> | parameters & attributes
+
+    Operations on attributes of objects.
+    First performs 'wait' operations, then the 'get' ones, then all the rest except 'set', and finally the 'set' ones.
+
+    :param objects: An object or a list of objects to operate on.
+    :return: A list of 'get' operations, or a list of lists, if there are many 'get' operations.
+    """
     single = False
     ctls = controls
     if not isinstance(ctls, list):
