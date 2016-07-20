@@ -18,7 +18,9 @@ try:
 
     from White.Core.UIItems.Finders import SearchCriteria
 
-    from White.Core.UIItems import Button, TextBox, RadioButton, Label, CheckBox, Panel, Spinner, ListView
+    from White.Core.UIItems import Button, TextBox, RadioButton, Label, CheckBox
+
+    from White.Core.UIItems import Panel, Spinner, ListView
 
     from White.Core.UIItems.ListBoxItems import ListBox, ListItem, ComboBox
 
@@ -166,8 +168,7 @@ def app_launch(executable, teardown=None, params='', _assert=False, **kw):
 
     if workdir!='':
         pi.WorkingDirectory=workdir
-        print('Work dir')
-        print(workdir)
+        logging.info(workdir)
     try:
         app = Application.Launch(pi)
     except:
