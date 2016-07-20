@@ -20,7 +20,10 @@ try:
 
     from White.Core.UIItems import Button, TextBox, RadioButton, Label, CheckBox
 
-    from White.Core.UIItems.ListBoxItems import ListBox, ListItem
+    from White.Core.UIItems import Panel, Spinner, ListView
+
+    from White.Core.UIItems.ListBoxItems import ListBox, ListItem, ComboBox
+
     from White.Core.UIItems.TabItems import Tab, TabPage
     #import White.Core.UIItems
     #logging.warning(repr(dir(White.Core.UIItems)))
@@ -28,6 +31,7 @@ try:
     #from White.Core.UIItems.WindowItems import Window, DisplayState
     from White.Core.UIItems.MenuItems import Menu
     from White.Core.UIItems.WindowStripControls import ToolStrip, MenuBar
+    from White.Core.UIItems.WindowItems import TitleBar
     #from White.Core.UIItems.ListBoxItems import ComboBox
     #from White.Core.UIItems.TableItems import Table
 
@@ -126,6 +130,7 @@ LAUNCH_PARAMS = (
        'test_teardown': (('teardown', fixed_val('test')),),
        'assert': (('_assert', fixed_val(True)),),
        'params': (('params', pop),),
+       'workdir': (('workdir', pop),),
        'failure_text': (('failure_text', pop),),
     }
 )
@@ -145,7 +150,7 @@ def re_check_aid(obj, rexp):
 
 @robot_args(LAUNCH_PARAMS)
 @error_decorator
-def app_launch(executable, teardown=None, params='', _assert=False):
+def app_launch(executable, teardown=None, params='', _assert=False, **kw):
     """
     App Launch | <executable> [ | params | <cmdline parameters string> ] [ | flags and params ]
 
@@ -156,7 +161,14 @@ def app_launch(executable, teardown=None, params='', _assert=False):
     :return: An application object or None in case of failure if "assert" flag is not present.
 
     """
+    
     pi = ProcessStartInfo(executable, params)
+
+    workdir = kw.get('workdir', '')
+
+    if workdir!='':
+        pi.WorkingDirectory=workdir
+        logging.info(workdir)
     try:
         app = Application.Launch(pi)
     except:
@@ -437,6 +449,10 @@ WND_ATTRS.add_class_attr('Window', 'wait_while_busy', do=lambda w: w.WaitWhileBu
 WND_ATTRS.add_attr('menu', '', get=())
 WND_ATTRS.add_class_attr('Window', 'menu', get=lambda w: w.MenuBar)
 
+WND_ATTRS.add_attr('titlebar', '', get=())
+WND_ATTRS.add_class_attr('Window', 'titlebar', get=lambda w: w.TitleBar)
+
+
 WND_ATTRS.add_attr('texts', '', get=(),)
 WND_ATTRS.add_class_attr('Window', 'texts', get=full_text)
 
@@ -449,7 +465,8 @@ WND_ATTRS.add_class_attr('Window', 're_in_texts', wait=wait_re_in_texts)
 WND_ATTRS.add_attr('merged_texts', '', get=(),)
 WND_ATTRS.add_class_attr('Window', 'merged_texts', get=lambda x: '\n'.join(full_text(x)))
 
-
+WND_ATTRS.add_attr('focus', '', do=(), get=())
+WND_ATTRS.add_class_attr('UIItem', 'focus', do=lambda x: x.Focus(), get=lambda x: x.IsFocussed)
 
 WND_FILTER_PARAMS = (
     (pop,), {
@@ -585,6 +602,10 @@ CONTROL_TYPES = {
     'tree': Tree,
     'treenode': TreeNode,
     'toolbar': ToolStrip,
+    'panel': Panel,
+    'combobox': ComboBox,
+    'spinner': Spinner,
+    'titlebar': TitleBar	
 }
 
 
@@ -635,6 +656,11 @@ CTL_ATTRS.add_attr('unchecked', '', get=(), set=(pop_bool,))
 CTL_ATTRS.add_class_attr('CheckBox', 'unchecked', get=lambda x: not x.Checked, set=lambda x, p: x.Click() if bool(p) == bool(x.Checked) else None)
 CTL_ATTRS.add_class_attr('RadioButton', 'unchecked', get=lambda x: not x.IsSelected)
 CTL_ATTRS.add_class_attr('ListItem', 'unchecked', get=lambda x: not x.Checked, set=lambda x, v: x.UnCheck() if v else x.Check())
+
+CTL_ATTRS.add_attr('increment', '', do=(), get=())
+CTL_ATTRS.add_class_attr('Spinner', 'increment', do=lambda x: x.Increment(), get=lambda x: x.Increment())
+CTL_ATTRS.add_attr('decrement', '', do=(), get=())
+CTL_ATTRS.add_class_attr('Spinner', 'decrement', do=lambda x: x.Decrement(), get=lambda x: x.Decrement())
 
 
 CTL_ATTRS.add_attr('nodes', '', get=())
@@ -701,13 +727,18 @@ def tab_get_selected_idx(x):
 
 CTL_ATTRS.add_attr('selected', '', get=(), set=(pop,))
 CTL_ATTRS.add_class_attr('ListBox', 'selected', get=listbox_get_selected, set=listbox_select_idx)
+CTL_ATTRS.add_class_attr('ComboBox', 'selected',  get=listbox_get_selected, set=listbox_select_idx)
 CTL_ATTRS.add_class_attr('TreeNode', 'selected', get=lambda x: x.IsSelected, set=lambda x, v: x.Select() if str_2_bool(v) else x.UnSelect())
 CTL_ATTRS.add_attr('idx_selected', '', get=(), set=(pop_type(int),))
 CTL_ATTRS.add_class_attr('ListBox', 'idx_selected', get=listbox_get_selected_idx, set=lambda x, i: x.Select(i))
+CTL_ATTRS.add_class_attr('ComboBox', 'idx_selected', get=listbox_get_selected_idx, set=lambda x, i: x.Select(i))
 CTL_ATTRS.add_attr('num_items', '', get=(), wait=(pop_type(int),))
 CTL_ATTRS.add_class_attr('ListBox', 'num_items', get=lambda x: len(x.Items), wait=lambda x, n: n == len(x.Items))
+CTL_ATTRS.add_class_attr('ComboBox', 'num_items', get=lambda x: len(x.Items), wait=lambda x, n: n == len(x.Items))
 CTL_ATTRS.add_attr('listitems', '', get=())
 CTL_ATTRS.add_class_attr('ListBox', 'listitems', get=lambda x: [i for i in x.Items])
+CTL_ATTRS.add_attr('listrows', '', get=())
+CTL_ATTRS.add_class_attr('ListView', 'listrows', get=lambda x: [i for i in x.Rows])
 
 
 
